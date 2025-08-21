@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:watchlist/data/api_service.dart';
 import 'package:watchlist/data/movie_model.dart';
+import 'package:watchlist/screens/search_screen.dart';
 
 import '../data/movie_storage.dart';
 
@@ -47,8 +48,10 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     while (true) {
       try {
         var result = await apiService.getJson(endpoint);
+        Movie resultMovie = Movie.fromJson(result);
+
         setState(() {
-          moviesList.add(Movie.fromJson(result));
+          moviesList.add(resultMovie);
         });
         print('Success: $result');
         break;
@@ -112,7 +115,13 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                 actions: [
                   IconButton(
                     onPressed: () {
-                      addMovie('movie/559');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              SearchScreen(onMovieSelected: addMovie),
+                        ),
+                      );
                     },
                     icon: Icon(Icons.search, color: Colors.white),
                   ),
@@ -149,14 +158,16 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: CachedNetworkImageProvider(
-                    apiService.getImageUrl(moviesList[index].backdropPath),
+                    apiService.getImageUrl(
+                      moviesList[index].backdropPath ?? '',
+                    ),
                   ),
                   fit: BoxFit.cover,
                 ),
               ),
               child: ListTile(
                 contentPadding: EdgeInsets.all(0),
-                minTileHeight: 150,
+                minTileHeight: 200,
                 title: Padding(
                   padding: const EdgeInsets.only(left: 10),
                   child: Column(
@@ -168,30 +179,69 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                           color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(0.5, 0.5),
+                              blurRadius: 2,
+                              color: Colors.black.withValues(alpha: 0.7),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(moviesList[index].releaseDate.substring(0, 4)),
+                      Text(
+                        moviesList[index].releaseDate!.substring(0, 4),
+                        style: TextStyle(
+                          shadows: [
+                            Shadow(
+                              offset: Offset(0.5, 0.5),
+                              blurRadius: 2,
+                              color: Colors.black.withValues(alpha: 0.7),
+                            ),
+                          ],
+                        ),
+                      ),
                       Row(
                         children: [
                           Icon(
                             Icons.access_time,
                             color: Color(0xffD3D3D3),
                             size: 14,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0.5, 0.5),
+                                blurRadius: 2,
+                                color: Colors.black.withValues(alpha: 0.7),
+                              ),
+                            ],
                           ),
                           Text(
                             moviesList[index].runtime.toString(),
                             style: TextStyle(
                               color: Color(0xffD3D3D3),
                               fontSize: 14,
+                              shadows: [
+                                Shadow(
+                                  offset: Offset(0.5, 0.5),
+                                  blurRadius: 2,
+                                  color: Colors.black.withValues(alpha: 0.7),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                       Text(
-                        '${moviesList[index].genres[0].name}, ${moviesList[index].genres[1].name}',
+                        '${moviesList[index].genres![0].name}, ${moviesList[index].genres![1].name}',
                         style: TextStyle(
                           color: Color(0xffD3D3D3),
                           fontSize: 14,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(0.5, 0.5),
+                              blurRadius: 2,
+                              color: Colors.black.withValues(alpha: 0.7),
+                            ),
+                          ],
                         ),
                       ),
                     ],

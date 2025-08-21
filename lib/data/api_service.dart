@@ -1,8 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:dio/dio.dart';
-import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:flutter/material.dart';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiService {
@@ -17,7 +14,7 @@ class ApiService {
     final url = '$baseUrl$endpoint';
 
     try {
-      final response = await JsonCacheService.dio.get(url);
+      final response = await DioService.dio.get(url);
       final fromNetwork = response.extra['@fromNetwork@'] ?? true;
       print('fetching json');
       print(
@@ -44,32 +41,9 @@ class ApiService {
       );
     }
   }
-
-  // Future<Image> getImageWithDioCache(
-  //   String posterPath, {
-  //   String size = 'w500',
-  // }) async {
-  //   final url = '$imageBaseUrl$size$posterPath';
-  //
-  //   try {
-  //     final response = await ImageCacheService.dio.get<List<int>>(
-  //       url,
-  //       options: Options(responseType: ResponseType.bytes),
-  //     );
-  //     final fromNetwork = response.extra['@fromNetwork@'] ?? true;
-  //     print('fetching image');
-  //     print(
-  //       'Image ${fromNetwork ? 'fetched from network' : 'loaded from cache'}',
-  //     );
-  //     final bytes = Uint8List.fromList(response.data!);
-  //     return Image.memory(bytes, fit: BoxFit.contain);
-  //   } catch (e) {
-  //     throw Exception('Failed to load image: $e');
-  //   }
-  // }
 }
 
-class JsonCacheService {
+class DioService {
   static final String bearerToken = dotenv.env['TMDB_BEARER'] ?? '';
   static Dio? _dio;
 
@@ -87,22 +61,3 @@ class JsonCacheService {
     return _dio!;
   }
 }
-
-// class ImageCacheService {
-//   static Dio? _dio;
-//
-//   static Dio get dio {
-//     if (_dio == null) {
-//       final cacheOptions = CacheOptions(
-//         store: MemCacheStore(), // File-based for persistence
-//         policy: CachePolicy.request,
-//         maxStale: const Duration(days: 7), // Long cache duration
-//         priority: CachePriority.normal, // Lower priority than JSON
-//       );
-//
-//       _dio = Dio()
-//         ..interceptors.add(DioCacheInterceptor(options: cacheOptions));
-//     }
-//     return _dio!;
-//   }
-// }

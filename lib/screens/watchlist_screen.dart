@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:watchlist/data/api_service.dart';
 import 'package:watchlist/data/movie_model.dart';
 
+import '../data/movie_storage.dart';
+
 class WatchlistScreen extends StatefulWidget {
   const WatchlistScreen({super.key});
 
@@ -21,7 +23,41 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_updateScrollProgress);
-    loadMoviesList();
+    loadMoviesFromStorage();
+  }
+
+  Future<void> loadMoviesFromStorage() async {
+    // First, load from local storage for instant display
+    final cachedMovies = await MovieStorage.loadMovies();
+    if (cachedMovies.isNotEmpty) {
+      setState(() {
+        moviesList = cachedMovies;
+      });
+    }
+  }
+
+  void removeMovie(int index) async {
+    setState(() {
+      moviesList.removeAt(index);
+    });
+    await MovieStorage.saveMovies(moviesList); // Update storage
+  }
+
+  Future<void> addMovie(String endpoint) async {
+    while (true) {
+      try {
+        var result = await apiService.getJson(endpoint);
+        setState(() {
+          moviesList.add(Movie.fromJson(result));
+        });
+        print('Success: $result');
+        break;
+      } catch (e) {
+        print('Failed to fetch data, retrying... Error: $e');
+        await Future.delayed(Duration(milliseconds: 2));
+      }
+    }
+    await MovieStorage.saveMovies(moviesList); // Update storage
   }
 
   void _updateScrollProgress() {
@@ -33,22 +69,6 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
             ? (currentScroll / maxScroll).clamp(0.0, 1.0)
             : 0.0;
       });
-    }
-  }
-
-  void loadMovie() async {
-    while (true) {
-      try {
-        var result = await apiService.getJson('movie/559');
-        print('Success: $result');
-
-        break; // Exit loop on success
-      } catch (e) {
-        print('Failed to fetch data, retrying... Error: $e');
-        await Future.delayed(
-          Duration(milliseconds: 2),
-        ); // Wait 2 seconds before retry
-      }
     }
   }
 
@@ -81,12 +101,25 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
                     'WATCHLIST',
-                    style: TextStyle(color: Colors.white, fontSize: 32),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
+
                 actions: [
-                  IconButton(onPressed: () {}, icon: Icon(Icons.search)),
-                  IconButton(onPressed: () {}, icon: Icon(Icons.tune)),
+                  IconButton(
+                    onPressed: () {
+                      addMovie('movie/559');
+                    },
+                    icon: Icon(Icons.search, color: Colors.white),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(Icons.tune, color: Colors.white),
+                  ),
                 ],
                 backgroundColor: Colors.black,
               ),
@@ -109,7 +142,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
             key: ValueKey(moviesList[index]),
             onDismissed: (DismissDirection direction) {
               setState(() {
-                moviesList.removeAt(index);
+                removeMovie(index);
               });
             },
             child: Container(
@@ -123,8 +156,47 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
               ),
               child: ListTile(
                 contentPadding: EdgeInsets.all(0),
-                minTileHeight: 100,
-                title: Row(children: [Text(moviesList[index].title)]),
+                minTileHeight: 150,
+                title: Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        moviesList[index].title,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(moviesList[index].releaseDate.substring(0, 4)),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            color: Color(0xffD3D3D3),
+                            size: 14,
+                          ),
+                          Text(
+                            moviesList[index].runtime.toString(),
+                            style: TextStyle(
+                              color: Color(0xffD3D3D3),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${moviesList[index].genres[0].name}, ${moviesList[index].genres[1].name}',
+                        style: TextStyle(
+                          color: Color(0xffD3D3D3),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

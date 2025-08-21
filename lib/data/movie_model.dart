@@ -28,6 +28,17 @@ class Movie {
       genres: (json['genres'] as List).map((g) => Genre.fromJson(g)).toList(),
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'poster_path': posterPath,
+      'backdrop_path': backdropPath,
+      'runtime': runtime,
+      'release_date': releaseDate,
+      'genres': genres.map((genre) => genre.toJson()).toList(),
+    };
+  }
 }
 
 class Genre {
@@ -38,5 +49,8 @@ class Genre {
 
   factory Genre.fromJson(Map<String, dynamic> json) {
     return Genre(id: json['id'], name: json['name']);
+  }
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'name': name};
   }
 }

@@ -41,6 +41,7 @@ dependencies:
   dio_cache_interceptor: ^3.5.0
   flutter_cache_manager: ^3.4.1
   dio_cache_interceptor_file_store: ^1.2.3
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
